@@ -35,7 +35,8 @@
     "format:write": "prettier --write **/*.ts",
     "format:check": "prettier --check **/*.ts",
     "lint": "npx eslint . -c ./.github/linters/.eslintrc.yml",
-    "package": "esbuild src/main.ts src/post.ts --bundle --outdir=dist --platform=node",
+    "package:old": "esbuild src/main.ts src/post.ts --bundle --outdir=dist --platform=node",
+    "package": "node esbuild.mjs",
     "package:watch": "npm run package -- --watch"
   },
   "license": "MIT",
