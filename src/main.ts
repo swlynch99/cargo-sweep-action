@@ -45,7 +45,7 @@ async function getTargetFromRustc(): Promise<string> {
   }
 
   core.debug(`rustc emitted target info: ${lines[0]}`)
-  const triple = lines[0].split(':', 1)[1].trim()
+  const [_, triple] = lines[0].split(':', 2);
 
   // The following is basically copied from cargo-quickinstall.
   //
