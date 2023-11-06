@@ -16,27 +16,13 @@
   "engines": {
     "node": ">=20"
   },
-  "main": "dist/main.js",
-  "post": "dist/post.js",
-  "targets": {
-    "main": {
-      "source": "src/main.ts",
-      "context": "node",
-      "includeNodeModules": true
-    },
-    "post": {
-      "source": "src/post.ts",
-      "context": "node",
-      "includeNodeModules": true
-    }
-  },
   "scripts": {
     "bundle": "npm run format:write && npm run package",
     "format:write": "prettier --write **/*.ts",
     "format:check": "prettier --check **/*.ts",
     "lint": "npx eslint . -c ./.github/linters/.eslintrc.yml",
     "package:old": "esbuild src/main.ts src/post.ts --bundle --outdir=dist --platform=node",
-    "package": "node esbuild.mjs",
+    "package": "rm -rf dist && node esbuild.mjs",
     "package:watch": "npm run package -- --watch"
   },
   "license": "MIT",

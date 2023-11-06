@@ -19,6 +19,10 @@ await esbuild.build({
   bundle: true,
   outdir: 'dist',
   platform: 'node',
+  target: ['node20'],
   plugins: [excludeVendorFromSourceMapPlugin],
-  sourcemap: true
+  sourcemap: true,
+  format: 'esm',
+  splitting: true,
+  logLevel: 'info',
 });
