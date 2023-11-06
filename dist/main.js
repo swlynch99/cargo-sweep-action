@@ -21160,7 +21160,10 @@ var import_http_client = __toESM(require_lib());
 var import_stream_buffers = __toESM(require_streambuffer());
 var client = new import_http_client.HttpClient("cargo-sweep-action");
 async function getLatestVersion() {
-  const response = await client.get("https://crates.io/api/v1/crates/");
+  const url = "https://crates.io/api/v1/crates/cargo-sweep";
+  core.debug(`querying crates.io API for latest version (at ${url})`);
+  const response = await client.get(url);
+  core.debug(`got status code ${response.message.statusCode}`);
   if (response.message.statusCode !== 200) {
     core.debug(await response.readBody());
     throw new Error("unable to fetch the latest version of cargo-sweep");
@@ -21196,14 +21199,15 @@ async function installLatestVersion() {
   const baseUrl = "https://github.com/cargo-bins/cargo-quickinstall/releases/download";
   const version2 = await getLatestVersion();
   const target = await getTargetFromRustc();
+  const url = `${baseUrl}/cargo-sweep-${version2}/cargo-sweep-${version2}-${target}.tar.gz`;
   let cached = tc.find("cargo-sweep", version2, target);
   if (!cached) {
-    const path = await tc.downloadTool(
-      `${baseUrl}/cargo-sweep-${version2}/cargo-sweep-${version2}-${target}.tar.gz`
-    );
+    core.debug(`downloading from ${url}`);
+    const path = await tc.downloadTool(url);
     const extracted = await tc.extractTar(path);
     cached = await tc.cacheDir(extracted, "cargo-sweep", version2, target);
   }
+  core.debug(`cargo-sweep downloaded to ${cached}`);
   core.addPath(cached);
 }
 async function run() {
