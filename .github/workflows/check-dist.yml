@@ -24,23 +24,17 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
-        id: checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v2
         with:
-          node-version-file: .node-version
-          cache: npm
+          version: latest
+          standalone: true
 
       - name: Install Dependencies
-        id: install
-        run: npm ci
+        run: pnpm install
 
       - name: Build dist/ Directory
-        id: build
-        run: npm run bundle
+        run: pnpm package
 
       - name: Compare Expected and Actual Directories
         id: diff
