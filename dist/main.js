@@ -1133,7 +1133,7 @@ var require_util = __commonJS({
     var assert = require("assert");
     var { kDestroyed, kBodyUsed } = require_symbols();
     var { IncomingMessage } = require("http");
-    var stream2 = require("stream");
+    var stream = require("stream");
     var net = require("net");
     var { InvalidArgumentError } = require_errors();
     var { Blob: Blob2 } = require("buffer");
@@ -1252,29 +1252,29 @@ var require_util = __commonJS({
       }
       return null;
     }
-    function isDestroyed(stream3) {
-      return !stream3 || !!(stream3.destroyed || stream3[kDestroyed]);
+    function isDestroyed(stream2) {
+      return !stream2 || !!(stream2.destroyed || stream2[kDestroyed]);
     }
-    function isReadableAborted(stream3) {
-      const state = stream3 && stream3._readableState;
-      return isDestroyed(stream3) && state && !state.endEmitted;
+    function isReadableAborted(stream2) {
+      const state = stream2 && stream2._readableState;
+      return isDestroyed(stream2) && state && !state.endEmitted;
     }
-    function destroy(stream3, err) {
-      if (stream3 == null || !isStream(stream3) || isDestroyed(stream3)) {
+    function destroy(stream2, err) {
+      if (stream2 == null || !isStream(stream2) || isDestroyed(stream2)) {
         return;
       }
-      if (typeof stream3.destroy === "function") {
-        if (Object.getPrototypeOf(stream3).constructor === IncomingMessage) {
-          stream3.socket = null;
+      if (typeof stream2.destroy === "function") {
+        if (Object.getPrototypeOf(stream2).constructor === IncomingMessage) {
+          stream2.socket = null;
         }
-        stream3.destroy(err);
+        stream2.destroy(err);
       } else if (err) {
-        process.nextTick((stream4, err2) => {
-          stream4.emit("error", err2);
-        }, stream3, err);
+        process.nextTick((stream3, err2) => {
+          stream3.emit("error", err2);
+        }, stream2, err);
       }
-      if (stream3.destroyed !== true) {
-        stream3[kDestroyed] = true;
+      if (stream2.destroyed !== true) {
+        stream2[kDestroyed] = true;
       }
     }
     var KEEPALIVE_TIMEOUT_EXPR = /timeout=(\d+)/;
@@ -1361,15 +1361,15 @@ var require_util = __commonJS({
       }
     }
     function isDisturbed(body) {
-      return !!(body && (stream2.isDisturbed ? stream2.isDisturbed(body) || body[kBodyUsed] : body[kBodyUsed] || body.readableDidRead || body._readableState && body._readableState.dataEmitted || isReadableAborted(body)));
+      return !!(body && (stream.isDisturbed ? stream.isDisturbed(body) || body[kBodyUsed] : body[kBodyUsed] || body.readableDidRead || body._readableState && body._readableState.dataEmitted || isReadableAborted(body)));
     }
     function isErrored(body) {
-      return !!(body && (stream2.isErrored ? stream2.isErrored(body) : /state: 'errored'/.test(
+      return !!(body && (stream.isErrored ? stream.isErrored(body) : /state: 'errored'/.test(
         nodeUtil.inspect(body)
       )));
     }
     function isReadable(body) {
-      return !!(body && (stream2.isReadable ? stream2.isReadable(body) : /state: 'readable'/.test(
+      return !!(body && (stream.isReadable ? stream.isReadable(body) : /state: 'readable'/.test(
         nodeUtil.inspect(body)
       )));
     }
@@ -3668,11 +3668,11 @@ var require_util2 = __commonJS({
       }
     }
     var ReadableStream = globalThis.ReadableStream;
-    function isReadableStreamLike(stream2) {
+    function isReadableStreamLike(stream) {
       if (!ReadableStream) {
         ReadableStream = require("stream/web").ReadableStream;
       }
-      return stream2 instanceof ReadableStream || stream2[Symbol.toStringTag] === "ReadableStream" && typeof stream2.tee === "function";
+      return stream instanceof ReadableStream || stream[Symbol.toStringTag] === "ReadableStream" && typeof stream.tee === "function";
     }
     var MAXIMUM_ARGUMENT_LENGTH = 65535;
     function isomorphicDecode(input) {
@@ -4828,13 +4828,13 @@ var require_body = __commonJS({
       if (!ReadableStream) {
         ReadableStream = require("stream/web").ReadableStream;
       }
-      let stream2 = null;
+      let stream = null;
       if (object instanceof ReadableStream) {
-        stream2 = object;
+        stream = object;
       } else if (isBlobLike(object)) {
-        stream2 = object.stream();
+        stream = object.stream();
       } else {
-        stream2 = new ReadableStream({
+        stream = new ReadableStream({
           async pull(controller) {
             controller.enqueue(
               typeof source === "string" ? textEncoder.encode(source) : source
@@ -4846,7 +4846,7 @@ var require_body = __commonJS({
           type: void 0
         });
       }
-      assert(isReadableStreamLike(stream2));
+      assert(isReadableStreamLike(stream));
       let action = null;
       let source = null;
       let length = null;
@@ -4924,14 +4924,14 @@ Content-Type: ${value.type || "application/octet-stream"}\r
             "Response body object should not be disturbed or locked"
           );
         }
-        stream2 = object instanceof ReadableStream ? object : ReadableStreamFrom(object);
+        stream = object instanceof ReadableStream ? object : ReadableStreamFrom(object);
       }
       if (typeof source === "string" || util.isBuffer(source)) {
         length = Buffer.byteLength(source);
       }
       if (action != null) {
         let iterator;
-        stream2 = new ReadableStream({
+        stream = new ReadableStream({
           async start() {
             iterator = action(object)[Symbol.asyncIterator]();
           },
@@ -4942,7 +4942,7 @@ Content-Type: ${value.type || "application/octet-stream"}\r
                 controller.close();
               });
             } else {
-              if (!isErrored(stream2)) {
+              if (!isErrored(stream)) {
                 controller.enqueue(new Uint8Array(value));
               }
             }
@@ -4954,7 +4954,7 @@ Content-Type: ${value.type || "application/octet-stream"}\r
           type: void 0
         });
       }
-      const body = { stream: stream2, source, length };
+      const body = { stream, source, length };
       return [body, type];
     }
     function safelyExtractBody(object, keepalive = false) {
@@ -4983,15 +4983,15 @@ Content-Type: ${value.type || "application/octet-stream"}\r
         if (isUint8Array(body)) {
           yield body;
         } else {
-          const stream2 = body.stream;
-          if (util.isDisturbed(stream2)) {
+          const stream = body.stream;
+          if (util.isDisturbed(stream)) {
             throw new TypeError("The body has already been consumed.");
           }
-          if (stream2.locked) {
+          if (stream.locked) {
             throw new TypeError("The stream is locked.");
           }
-          stream2[kBodyUsed] = true;
-          yield* stream2;
+          stream[kBodyUsed] = true;
+          yield* stream;
         }
       }
     }
@@ -7667,23 +7667,23 @@ upgrade: ${upgrade}\r
       if (request.aborted) {
         return false;
       }
-      let stream2;
+      let stream;
       const h2State = client2[kHTTP2SessionState];
       headers[HTTP2_HEADER_AUTHORITY] = host || client2[kHost];
       headers[HTTP2_HEADER_METHOD] = method;
       if (method === "CONNECT") {
         session.ref();
-        stream2 = session.request(headers, { endStream: false, signal });
-        if (stream2.id && !stream2.pending) {
-          request.onUpgrade(null, null, stream2);
+        stream = session.request(headers, { endStream: false, signal });
+        if (stream.id && !stream.pending) {
+          request.onUpgrade(null, null, stream);
           ++h2State.openStreams;
         } else {
-          stream2.once("ready", () => {
-            request.onUpgrade(null, null, stream2);
+          stream.once("ready", () => {
+            request.onUpgrade(null, null, stream);
             ++h2State.openStreams;
           });
         }
-        stream2.once("close", () => {
+        stream.once("close", () => {
           h2State.openStreams -= 1;
           if (h2State.openStreams === 0)
             session.unref();
@@ -7718,45 +7718,45 @@ upgrade: ${upgrade}\r
       const shouldEndStream = method === "GET" || method === "HEAD";
       if (expectContinue) {
         headers[HTTP2_HEADER_EXPECT] = "100-continue";
-        stream2 = session.request(headers, { endStream: shouldEndStream, signal });
-        stream2.once("continue", writeBodyH2);
+        stream = session.request(headers, { endStream: shouldEndStream, signal });
+        stream.once("continue", writeBodyH2);
       } else {
-        stream2 = session.request(headers, {
+        stream = session.request(headers, {
           endStream: shouldEndStream,
           signal
         });
         writeBodyH2();
       }
       ++h2State.openStreams;
-      stream2.once("response", (headers2) => {
-        if (request.onHeaders(Number(headers2[HTTP2_HEADER_STATUS]), headers2, stream2.resume.bind(stream2), "") === false) {
-          stream2.pause();
+      stream.once("response", (headers2) => {
+        if (request.onHeaders(Number(headers2[HTTP2_HEADER_STATUS]), headers2, stream.resume.bind(stream), "") === false) {
+          stream.pause();
         }
       });
-      stream2.once("end", () => {
+      stream.once("end", () => {
         request.onComplete([]);
       });
-      stream2.on("data", (chunk) => {
+      stream.on("data", (chunk) => {
         if (request.onData(chunk) === false)
-          stream2.pause();
+          stream.pause();
       });
-      stream2.once("close", () => {
+      stream.once("close", () => {
         h2State.openStreams -= 1;
         if (h2State.openStreams === 0)
           session.unref();
       });
-      stream2.once("error", function(err) {
+      stream.once("error", function(err) {
         if (client2[kHTTP2Session] && !client2[kHTTP2Session].destroyed && !this.closed && !this.destroyed) {
           h2State.streams -= 1;
-          util.destroy(stream2, err);
+          util.destroy(stream, err);
         }
       });
-      stream2.once("frameError", (type, code) => {
+      stream.once("frameError", (type, code) => {
         const err = new InformationalError(`HTTP/2: "frameError" received - type ${type}, code ${code}`);
         errorRequest(client2, request, err);
         if (client2[kHTTP2Session] && !client2[kHTTP2Session].destroyed && !this.closed && !this.destroyed) {
           h2State.streams -= 1;
-          util.destroy(stream2, err);
+          util.destroy(stream, err);
         }
       });
       return true;
@@ -7765,10 +7765,10 @@ upgrade: ${upgrade}\r
           request.onRequestSent();
         } else if (util.isBuffer(body)) {
           assert(contentLength === body.byteLength, "buffer body must have content length");
-          stream2.cork();
-          stream2.write(body);
-          stream2.uncork();
-          stream2.end();
+          stream.cork();
+          stream.write(body);
+          stream.uncork();
+          stream.end();
           request.onBodySent(body);
           request.onRequestSent();
         } else if (util.isBlobLike(body)) {
@@ -7777,7 +7777,7 @@ upgrade: ${upgrade}\r
               client: client2,
               request,
               contentLength,
-              h2stream: stream2,
+              h2stream: stream,
               expectsPayload,
               body: body.stream(),
               socket: client2[kSocket],
@@ -7790,7 +7790,7 @@ upgrade: ${upgrade}\r
               request,
               contentLength,
               expectsPayload,
-              h2stream: stream2,
+              h2stream: stream,
               header: "",
               socket: client2[kSocket]
             });
@@ -7803,7 +7803,7 @@ upgrade: ${upgrade}\r
             contentLength,
             expectsPayload,
             socket: client2[kSocket],
-            h2stream: stream2,
+            h2stream: stream,
             header: ""
           });
         } else if (util.isIterable(body)) {
@@ -7814,7 +7814,7 @@ upgrade: ${upgrade}\r
             contentLength,
             expectsPayload,
             header: "",
-            h2stream: stream2,
+            h2stream: stream,
             socket: client2[kSocket]
           });
         } else {
@@ -8883,28 +8883,28 @@ var require_readable = __commonJS({
     function isUnusable(self) {
       return util.isDisturbed(self) || isLocked(self);
     }
-    async function consume(stream2, type) {
-      if (isUnusable(stream2)) {
+    async function consume(stream, type) {
+      if (isUnusable(stream)) {
         throw new TypeError("unusable");
       }
-      assert(!stream2[kConsume]);
+      assert(!stream[kConsume]);
       return new Promise((resolve, reject) => {
-        stream2[kConsume] = {
+        stream[kConsume] = {
           type,
-          stream: stream2,
+          stream,
           resolve,
           reject,
           length: 0,
           body: []
         };
-        stream2.on("error", function(err) {
+        stream.on("error", function(err) {
           consumeFinish(this[kConsume], err);
         }).on("close", function() {
           if (this[kConsume].body !== null) {
             consumeFinish(this[kConsume], new RequestAbortedError());
           }
         });
-        process.nextTick(consumeStart, stream2[kConsume]);
+        process.nextTick(consumeStart, stream[kConsume]);
       });
     }
     function consumeStart(consume2) {
@@ -8927,7 +8927,7 @@ var require_readable = __commonJS({
       }
     }
     function consumeEnd(consume2) {
-      const { type, body, resolve, stream: stream2, length } = consume2;
+      const { type, body, resolve, stream, length } = consume2;
       try {
         if (type === "text") {
           resolve(toUSVString(Buffer.concat(body)));
@@ -8945,11 +8945,11 @@ var require_readable = __commonJS({
           if (!Blob2) {
             Blob2 = require("buffer").Blob;
           }
-          resolve(new Blob2(body, { type: stream2[kContentType] }));
+          resolve(new Blob2(body, { type: stream[kContentType] }));
         }
         consumeFinish(consume2);
       } catch (err) {
-        stream2.destroy(err);
+        stream.destroy(err);
       }
     }
     function consumePush(consume2, chunk) {
@@ -9372,10 +9372,10 @@ var require_api_stream = __commonJS({
         }
       }
     };
-    function stream2(opts, factory, callback) {
+    function stream(opts, factory, callback) {
       if (callback === void 0) {
         return new Promise((resolve, reject) => {
-          stream2.call(this, opts, factory, (err, data) => {
+          stream.call(this, opts, factory, (err, data) => {
             return err ? reject(err) : resolve(data);
           });
         });
@@ -9390,7 +9390,7 @@ var require_api_stream = __commonJS({
         queueMicrotask(() => callback(err, { opaque }));
       }
     }
-    module2.exports = stream2;
+    module2.exports = stream;
   }
 });
 
@@ -12983,7 +12983,7 @@ var require_fetch = __commonJS({
       if (!ReadableStream) {
         ReadableStream = require("stream/web").ReadableStream;
       }
-      const stream2 = new ReadableStream(
+      const stream = new ReadableStream(
         {
           async start(controller) {
             fetchParams.controller.controller = controller;
@@ -13002,7 +13002,7 @@ var require_fetch = __commonJS({
           }
         }
       );
-      response.body = { stream: stream2 };
+      response.body = { stream };
       fetchParams.controller.on("terminated", onAborted);
       fetchParams.controller.resume = async () => {
         while (true) {
@@ -13033,7 +13033,7 @@ var require_fetch = __commonJS({
             return;
           }
           fetchParams.controller.controller.enqueue(new Uint8Array(bytes));
-          if (isErrored(stream2)) {
+          if (isErrored(stream)) {
             fetchParams.controller.terminate();
             return;
           }
@@ -13045,13 +13045,13 @@ var require_fetch = __commonJS({
       function onAborted(reason) {
         if (isAborted(fetchParams)) {
           response.aborted = true;
-          if (isReadable(stream2)) {
+          if (isReadable(stream)) {
             fetchParams.controller.controller.error(
               fetchParams.controller.serializedAbortReason
             );
           }
         } else {
-          if (isReadable(stream2)) {
+          if (isReadable(stream)) {
             fetchParams.controller.controller.error(new TypeError("terminated", {
               cause: isErrorLike(reason) ? reason : void 0
             }));
@@ -13602,8 +13602,8 @@ var require_util4 = __commonJS({
       fr[kState] = "loading";
       fr[kResult] = null;
       fr[kError] = null;
-      const stream2 = blob.stream();
-      const reader = stream2.getReader();
+      const stream = blob.stream();
+      const reader = stream.getReader();
       const bytes = [];
       let chunkPromise = reader.read();
       let isFirstChunk = true;
@@ -14288,8 +14288,8 @@ var require_cache = __commonJS({
         const clonedResponse = cloneResponse(innerResponse);
         const bodyReadPromise = createDeferredPromise();
         if (innerResponse.body != null) {
-          const stream2 = innerResponse.body.stream;
-          const reader = stream2.getReader();
+          const stream = innerResponse.body.stream;
+          const reader = stream.getReader();
           readAllBytes(reader).then(bodyReadPromise.resolve, bodyReadPromise.reject);
         } else {
           bodyReadPromise.resolve(void 0);
@@ -15743,7 +15743,7 @@ var require_frame = __commonJS({
 var require_receiver = __commonJS({
   "node_modules/.pnpm/undici@5.27.2/node_modules/undici/lib/websocket/receiver.js"(exports, module2) {
     "use strict";
-    var { Writable: Writable2 } = require("stream");
+    var { Writable } = require("stream");
     var diagnosticsChannel = require("diagnostics_channel");
     var { parserStates, opcodes, states, emptyBuffer } = require_constants4();
     var { kReadyState, kSentClose, kResponse, kReceivedClose } = require_symbols5();
@@ -15752,7 +15752,7 @@ var require_receiver = __commonJS({
     var channels = {};
     channels.ping = diagnosticsChannel.channel("undici:websocket:ping");
     channels.pong = diagnosticsChannel.channel("undici:websocket:pong");
-    var ByteParser = class extends Writable2 {
+    var ByteParser = class extends Writable {
       #buffers = [];
       #byteOffset = 0;
       #state = parserStates.INFO;
@@ -16765,9 +16765,9 @@ var require_lib = __commonJS({
           return this.request("HEAD", requestUrl, null, additionalHeaders || {});
         });
       }
-      sendStream(verb, requestUrl, stream2, additionalHeaders) {
+      sendStream(verb, requestUrl, stream, additionalHeaders) {
         return __awaiter(this, void 0, void 0, function* () {
-          return this.request(verb, requestUrl, stream2, additionalHeaders);
+          return this.request(verb, requestUrl, stream, additionalHeaders);
         });
       }
       /**
@@ -20494,7 +20494,7 @@ var require_tool_cache = __commonJS({
     var path = __importStar(require("path"));
     var httpm = __importStar(require_lib());
     var semver = __importStar(require_semver());
-    var stream2 = __importStar(require("stream"));
+    var stream = __importStar(require("stream"));
     var util = __importStar(require("util"));
     var assert_1 = require("assert");
     var v4_1 = __importDefault(require_v4());
@@ -20555,7 +20555,7 @@ var require_tool_cache = __commonJS({
           core2.debug(`Failed to download from "${url}". Code(${response.message.statusCode}) Message(${response.message.statusMessage})`);
           throw err;
         }
-        const pipeline = util.promisify(stream2.pipeline);
+        const pipeline = util.promisify(stream.pipeline);
         const responseMessageFactory = _getGlobal("TEST_DOWNLOAD_TOOL_RESPONSE_MESSAGE_FACTORY", () => response.message);
         const readStream = responseMessageFactory();
         let succeeded = false;
@@ -20970,6 +20970,183 @@ var require_tool_cache = __commonJS({
   }
 });
 
+// node_modules/.pnpm/stream-buffers@3.0.2/node_modules/stream-buffers/lib/constants.js
+var require_constants5 = __commonJS({
+  "node_modules/.pnpm/stream-buffers@3.0.2/node_modules/stream-buffers/lib/constants.js"(exports, module2) {
+    "use strict";
+    module2.exports = {
+      DEFAULT_INITIAL_SIZE: 8 * 1024,
+      DEFAULT_INCREMENT_AMOUNT: 8 * 1024,
+      DEFAULT_FREQUENCY: 1,
+      DEFAULT_CHUNK_SIZE: 1024
+    };
+  }
+});
+
+// node_modules/.pnpm/stream-buffers@3.0.2/node_modules/stream-buffers/lib/readable_streambuffer.js
+var require_readable_streambuffer = __commonJS({
+  "node_modules/.pnpm/stream-buffers@3.0.2/node_modules/stream-buffers/lib/readable_streambuffer.js"(exports, module2) {
+    "use strict";
+    var stream = require("stream");
+    var constants = require_constants5();
+    var util = require("util");
+    var ReadableStreamBuffer = module2.exports = function(opts) {
+      var that = this;
+      opts = opts || {};
+      stream.Readable.call(this, opts);
+      this.stopped = false;
+      var frequency = opts.hasOwnProperty("frequency") ? opts.frequency : constants.DEFAULT_FREQUENCY;
+      var chunkSize = opts.chunkSize || constants.DEFAULT_CHUNK_SIZE;
+      var initialSize = opts.initialSize || constants.DEFAULT_INITIAL_SIZE;
+      var incrementAmount = opts.incrementAmount || constants.DEFAULT_INCREMENT_AMOUNT;
+      var size = 0;
+      var buffer = new Buffer(initialSize);
+      var allowPush = false;
+      var sendData = function() {
+        var amount = Math.min(chunkSize, size);
+        var sendMore = false;
+        if (amount > 0) {
+          var chunk = null;
+          chunk = new Buffer(amount);
+          buffer.copy(chunk, 0, 0, amount);
+          sendMore = that.push(chunk) !== false;
+          allowPush = sendMore;
+          buffer.copy(buffer, 0, amount, size);
+          size -= amount;
+        }
+        if (size === 0 && that.stopped) {
+          that.push(null);
+        }
+        if (sendMore) {
+          sendData.timeout = setTimeout(sendData, frequency);
+        } else {
+          sendData.timeout = null;
+        }
+      };
+      this.stop = function() {
+        if (this.stopped) {
+          throw new Error("stop() called on already stopped ReadableStreamBuffer");
+        }
+        this.stopped = true;
+        if (size === 0) {
+          this.push(null);
+        }
+      };
+      this.size = function() {
+        return size;
+      };
+      this.maxSize = function() {
+        return buffer.length;
+      };
+      var increaseBufferIfNecessary = function(incomingDataSize) {
+        if (buffer.length - size < incomingDataSize) {
+          var factor = Math.ceil((incomingDataSize - (buffer.length - size)) / incrementAmount);
+          var newBuffer = new Buffer(buffer.length + incrementAmount * factor);
+          buffer.copy(newBuffer, 0, 0, size);
+          buffer = newBuffer;
+        }
+      };
+      var kickSendDataTask = function() {
+        if (!sendData.timeout && allowPush) {
+          sendData.timeout = setTimeout(sendData, frequency);
+        }
+      };
+      this.put = function(data, encoding) {
+        if (that.stopped) {
+          throw new Error("Tried to write data to a stopped ReadableStreamBuffer");
+        }
+        if (Buffer.isBuffer(data)) {
+          increaseBufferIfNecessary(data.length);
+          data.copy(buffer, size, 0);
+          size += data.length;
+        } else {
+          data = data + "";
+          var dataSizeInBytes = Buffer.byteLength(data);
+          increaseBufferIfNecessary(dataSizeInBytes);
+          buffer.write(data, size, encoding || "utf8");
+          size += dataSizeInBytes;
+        }
+        kickSendDataTask();
+      };
+      this._read = function() {
+        allowPush = true;
+        kickSendDataTask();
+      };
+    };
+    util.inherits(ReadableStreamBuffer, stream.Readable);
+  }
+});
+
+// node_modules/.pnpm/stream-buffers@3.0.2/node_modules/stream-buffers/lib/writable_streambuffer.js
+var require_writable_streambuffer = __commonJS({
+  "node_modules/.pnpm/stream-buffers@3.0.2/node_modules/stream-buffers/lib/writable_streambuffer.js"(exports, module2) {
+    "use strict";
+    var util = require("util");
+    var stream = require("stream");
+    var constants = require_constants5();
+    var WritableStreamBuffer2 = module2.exports = function(opts) {
+      opts = opts || {};
+      opts.decodeStrings = true;
+      stream.Writable.call(this, opts);
+      var initialSize = opts.initialSize || constants.DEFAULT_INITIAL_SIZE;
+      var incrementAmount = opts.incrementAmount || constants.DEFAULT_INCREMENT_AMOUNT;
+      var buffer = new Buffer(initialSize);
+      var size = 0;
+      this.size = function() {
+        return size;
+      };
+      this.maxSize = function() {
+        return buffer.length;
+      };
+      this.getContents = function(length) {
+        if (!size)
+          return false;
+        var data = new Buffer(Math.min(length || size, size));
+        buffer.copy(data, 0, 0, data.length);
+        if (data.length < size)
+          buffer.copy(buffer, 0, data.length);
+        size -= data.length;
+        return data;
+      };
+      this.getContentsAsString = function(encoding, length) {
+        if (!size)
+          return false;
+        var data = buffer.toString(encoding || "utf8", 0, Math.min(length || size, size));
+        var dataLength = Buffer.byteLength(data);
+        if (dataLength < size)
+          buffer.copy(buffer, 0, dataLength);
+        size -= dataLength;
+        return data;
+      };
+      var increaseBufferIfNecessary = function(incomingDataSize) {
+        if (buffer.length - size < incomingDataSize) {
+          var factor = Math.ceil((incomingDataSize - (buffer.length - size)) / incrementAmount);
+          var newBuffer = new Buffer(buffer.length + incrementAmount * factor);
+          buffer.copy(newBuffer, 0, 0, size);
+          buffer = newBuffer;
+        }
+      };
+      this._write = function(chunk, encoding, callback) {
+        increaseBufferIfNecessary(chunk.length);
+        chunk.copy(buffer, size, 0);
+        size += chunk.length;
+        callback();
+      };
+    };
+    util.inherits(WritableStreamBuffer2, stream.Writable);
+  }
+});
+
+// node_modules/.pnpm/stream-buffers@3.0.2/node_modules/stream-buffers/lib/streambuffer.js
+var require_streambuffer = __commonJS({
+  "node_modules/.pnpm/stream-buffers@3.0.2/node_modules/stream-buffers/lib/streambuffer.js"(exports, module2) {
+    "use strict";
+    module2.exports = require_constants5();
+    module2.exports.ReadableStreamBuffer = require_readable_streambuffer();
+    module2.exports.WritableStreamBuffer = require_writable_streambuffer();
+  }
+});
+
 // src/main.ts
 var main_exports = {};
 __export(main_exports, {
@@ -20979,26 +21156,12 @@ module.exports = __toCommonJS(main_exports);
 var core = __toESM(require_core());
 var tc = __toESM(require_tool_cache());
 var exec = __toESM(require_exec());
-var stream = __toESM(require("stream"));
 var import_http_client = __toESM(require_lib());
+var import_stream_buffers = __toESM(require_streambuffer());
 var client = new import_http_client.HttpClient("cargo-sweep-action");
-var StringStream = class extends stream.Writable {
-  constructor() {
-    super();
-    stream.Writable.call(this);
-  }
-  contents = "";
-  _write(data, encoding, next) {
-    this.contents += data;
-    next();
-  }
-  getContents() {
-    return this.contents;
-  }
-};
 async function getLatestVersion() {
   const response = await client.get("https://crates.io/api/v1/crates/");
-  if (response.message.statusCode != 200) {
+  if (response.message.statusCode !== 200) {
     core.debug(await response.readBody());
     throw new Error("unable to fetch the latest version of cargo-sweep");
   }
@@ -21006,7 +21169,7 @@ async function getLatestVersion() {
   return json.crate.max_stable_version;
 }
 async function getTargetFromRustc() {
-  let output = new StringStream();
+  const output = new import_stream_buffers.WritableStreamBuffer();
   const exitCode = await exec.exec("rustc", ["--version", "--verbose"], {
     outStream: output,
     ignoreReturnCode: true
@@ -21014,8 +21177,12 @@ async function getTargetFromRustc() {
   if (exitCode !== 0) {
     throw new Error("rustc -vV exited with an error code");
   }
-  const lines = output.getContents().split("\n").filter((line) => line.startsWith("host:"));
-  if (lines.length == 0) {
+  const contents = output.getContentsAsString("utf8");
+  if (!contents) {
+    throw new Error("rustc -vV emitted invalid UTF-8");
+  }
+  const lines = contents.split("\n").filter((line) => line.startsWith("host:"));
+  if (lines.length === 0) {
     throw new Error("unable to determine current target triple from rustc -vV");
   }
   const triple = lines[0].split(":", 1)[1].trim();
@@ -21039,6 +21206,15 @@ async function installLatestVersion() {
   }
   core.addPath(cached);
 }
+async function run() {
+  try {
+    await installLatestVersion();
+    await exec.exec("cargo", ["sweep", "-s"]);
+  } catch (e) {
+    core.setFailed(e);
+  }
+}
+run();
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {
   installLatestVersion

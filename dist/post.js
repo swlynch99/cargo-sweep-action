@@ -18959,9 +18959,7 @@ async function sweep() {
   exec.exec("cargo", ["sweep", "-f"]);
   core.endGroup();
 }
-(async () => {
-  await sweep();
-})();
+sweep();
 /*! Bundled license information:
 
 undici/lib/fetch/body.js:

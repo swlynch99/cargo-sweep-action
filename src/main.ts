@@ -1,37 +1,15 @@
 import * as core from '@actions/core'
 import * as tc from '@actions/tool-cache'
 import * as exec from '@actions/exec'
-import * as stream from 'stream'
 import { HttpClient } from '@actions/http-client'
+import { WritableStreamBuffer } from 'stream-buffers'
 
 const client = new HttpClient('cargo-sweep-action')
 
-class StringStream extends stream.Writable {
-  constructor() {
-    super()
-    stream.Writable.call(this)
-  }
-
-  private contents = ''
-
-  _write(
-    data: string | Buffer | Uint8Array,
-    encoding: string,
-    next: Function
-  ): void {
-    this.contents += data
-    next()
-  }
-
-  getContents(): string {
-    return this.contents
-  }
-}
-
-async function getLatestVersion() {
+async function getLatestVersion(): Promise<string> {
   const response = await client.get('https://crates.io/api/v1/crates/')
 
-  if (response.message.statusCode != 200) {
+  if (response.message.statusCode !== 200) {
     core.debug(await response.readBody())
     throw new Error('unable to fetch the latest version of cargo-sweep')
   }
@@ -41,7 +19,7 @@ async function getLatestVersion() {
 }
 
 async function getTargetFromRustc(): Promise<string> {
-  let output = new StringStream()
+  const output = new WritableStreamBuffer()
 
   const exitCode = await exec.exec('rustc', ['--version', '--verbose'], {
     outStream: output,
@@ -52,11 +30,13 @@ async function getTargetFromRustc(): Promise<string> {
     throw new Error('rustc -vV exited with an error code')
   }
 
-  const lines = output
-    .getContents()
-    .split('\n')
-    .filter(line => line.startsWith('host:'))
-  if (lines.length == 0) {
+  const contents = output.getContentsAsString('utf8')
+  if (!contents) {
+    throw new Error('rustc -vV emitted invalid UTF-8')
+  }
+
+  const lines = contents.split('\n').filter(line => line.startsWith('host:'))
+  if (lines.length === 0) {
     throw new Error('unable to determine current target triple from rustc -vV')
   }
 
@@ -76,7 +56,7 @@ async function getTargetFromRustc(): Promise<string> {
   return components.join('-')
 }
 
-export async function installLatestVersion() {
+export async function installLatestVersion(): Promise<void> {
   const baseUrl =
     'https://github.com/cargo-bins/cargo-quickinstall/releases/download'
   const version = await getLatestVersion()
@@ -94,11 +74,13 @@ export async function installLatestVersion() {
   core.addPath(cached)
 }
 
-(async () => {
-    try {
-        await installLatestVersion();
-        await exec.exec('cargo', ['sweep', '-s']);
-    } catch (e) {
-        core.setFailed(e as any)
-    }
-})
+async function run(): Promise<void> {
+  try {
+    await installLatestVersion()
+    await exec.exec('cargo', ['sweep', '-s'])
+  } catch (e) {
+    core.setFailed(e as Error)
+  }
+}
+
+run()
