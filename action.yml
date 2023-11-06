@@ -4,5 +4,5 @@ author: swlynch99
 
 runs:
   using: node20
-  main: dist/main.mjs
-  post: dist/post.mjs
+  main: dist/main.js
+  post: dist/post.js
