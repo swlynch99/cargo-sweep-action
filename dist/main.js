@@ -21189,7 +21189,7 @@ async function getTargetFromRustc() {
     throw new Error("unable to determine current target triple from rustc -vV");
   }
   core.debug(`rustc emitted target info: ${lines[0]}`);
-  const [_, triple] = lines[0].split(":", 2);
+  const triple = lines[0].split(":", 2)[1];
   const components = triple.split("-", 4);
   if (components[2] === "linux") {
     components[1] = "unknown";
