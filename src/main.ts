@@ -7,8 +7,12 @@ import { WritableStreamBuffer } from 'stream-buffers'
 const client = new HttpClient('cargo-sweep-action')
 
 async function getLatestVersion(): Promise<string> {
-  const response = await client.get('https://crates.io/api/v1/crates/')
+  const url = 'https://crates.io/api/v1/crates/cargo-sweep'
 
+  core.debug(`querying crates.io API for latest version (at ${url})`)
+  const response = await client.get(url)
+
+  core.debug(`got status code ${response.message.statusCode}`)
   if (response.message.statusCode !== 200) {
     core.debug(await response.readBody())
     throw new Error('unable to fetch the latest version of cargo-sweep')
@@ -61,15 +65,17 @@ export async function installLatestVersion(): Promise<void> {
     'https://github.com/cargo-bins/cargo-quickinstall/releases/download'
   const version = await getLatestVersion()
   const target = await getTargetFromRustc()
+  const url = `${baseUrl}/cargo-sweep-${version}/cargo-sweep-${version}-${target}.tar.gz`
 
   let cached = tc.find('cargo-sweep', version, target)
   if (!cached) {
-    const path = await tc.downloadTool(
-      `${baseUrl}/cargo-sweep-${version}/cargo-sweep-${version}-${target}.tar.gz`
-    )
+    core.debug(`downloading from ${url}`)
+    const path = await tc.downloadTool(url)
     const extracted = await tc.extractTar(path)
     cached = await tc.cacheDir(extracted, 'cargo-sweep', version, target)
   }
+
+  core.debug(`cargo-sweep downloaded to ${cached}`)
 
   core.addPath(cached)
 }
