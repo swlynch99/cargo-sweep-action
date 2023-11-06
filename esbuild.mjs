@@ -25,4 +25,5 @@ await esbuild.build({
   format: 'esm',
   splitting: true,
   logLevel: 'info',
+  outExtension: { '.js': '.mjs' }
 });
