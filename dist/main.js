@@ -17830,11 +17830,11 @@ Support boolean input list: \`true | True | TRUE | false | False | FALSE\``);
       command_1.issue("echo", enabled ? "on" : "off");
     }
     exports.setCommandEcho = setCommandEcho;
-    function setFailed2(message) {
+    function setFailed(message) {
       process.exitCode = ExitCode.Failure;
       error(message);
     }
-    exports.setFailed = setFailed2;
+    exports.setFailed = setFailed;
     function isDebug() {
       return process.env["RUNNER_DEBUG"] === "1";
     }
@@ -21188,6 +21188,7 @@ async function getTargetFromRustc() {
   if (lines.length === 0) {
     throw new Error("unable to determine current target triple from rustc -vV");
   }
+  core.debug(`rustc emitted target info: ${lines[0]}`);
   const triple = lines[0].split(":", 1)[1].trim();
   const components = triple.split("-", 4);
   if (components[2] === "linux") {
@@ -21211,12 +21212,8 @@ async function installLatestVersion() {
   core.addPath(cached);
 }
 async function run() {
-  try {
-    await installLatestVersion();
-    await exec.exec("cargo", ["sweep", "-s"]);
-  } catch (e) {
-    core.setFailed(e);
-  }
+  await installLatestVersion();
+  await exec.exec("cargo", ["sweep", "-s"]);
 }
 run();
 // Annotate the CommonJS export names for ESM import in node:

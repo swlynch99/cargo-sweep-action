@@ -44,6 +44,7 @@ async function getTargetFromRustc(): Promise<string> {
     throw new Error('unable to determine current target triple from rustc -vV')
   }
 
+  core.debug(`rustc emitted target info: ${lines[0]}`)
   const triple = lines[0].split(':', 1)[1].trim()
 
   // The following is basically copied from cargo-quickinstall.
@@ -81,12 +82,8 @@ export async function installLatestVersion(): Promise<void> {
 }
 
 async function run(): Promise<void> {
-  try {
-    await installLatestVersion()
-    await exec.exec('cargo', ['sweep', '-s'])
-  } catch (e) {
-    core.setFailed(e as Error)
-  }
+  await installLatestVersion()
+  await exec.exec('cargo', ['sweep', '-s'])
 }
 
 run()
