@@ -14,6 +14,7 @@ This action will use [cargo-sweep] to automatically remove any artifacts that
 were not used by the current job.
 
 To use it, run it in your actions job _after_ running your cache action:
+
 ```yaml
 jobs:
   build:
