@@ -63,7 +63,7 @@ devDependencies:
     version: 3.2.2
   prettier-eslint:
     specifier: ^16.1.2
-    version: 16.2.0
+    version: 16.3.0
   ts-jest:
     specifier: ^29.1.1
     version: 29.1.1(@babel/core@7.23.2)(esbuild@0.19.11)(jest@29.7.0)(typescript@5.3.3)
@@ -4068,9 +4068,17 @@ packages:
     engines: {node: '>= 0.8.0'}
     dev: true
 
-  /prettier-eslint@16.2.0:
-    resolution: {integrity: sha512-GDTSKc62VaLceiaI/qMaKo2oco2CIWtbj4Zr6ckhbTgcBL/uR0d9jkMzh9OtBIT/Z7iBoCB4OHj/aJ5YuNgAuA==}
+  /prettier-eslint@16.3.0:
+    resolution: {integrity: sha512-Lh102TIFCr11PJKUMQ2kwNmxGhTsv/KzUg9QYF2Gkw259g/kPgndZDWavk7/ycbRvj2oz4BPZ1gCU8bhfZH/Xg==}
     engines: {node: '>=16.10.0'}
+    peerDependencies:
+      prettier-plugin-svelte: ^3.0.0
+      svelte-eslint-parser: '*'
+    peerDependenciesMeta:
+      prettier-plugin-svelte:
+        optional: true
+      svelte-eslint-parser:
+        optional: true
     dependencies:
       '@typescript-eslint/parser': 6.19.0(eslint@8.56.0)(typescript@5.3.3)
       common-tags: 1.8.2
