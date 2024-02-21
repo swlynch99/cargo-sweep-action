@@ -82,8 +82,8 @@ async function downloadCargoSweep(
   core.debug(`Attempting download from ${url}`)
 
   try {
-    const path = await tc.downloadTool(url)
-    const extracted = await tc.extractTar(path)
+    const downloadPath = await tc.downloadTool(url)
+    const extracted = await tc.extractTar(downloadPath)
     return await tc.cacheDir(extracted, 'cargo-sweep', version, target)
   } catch (e) {
     // return nothing
