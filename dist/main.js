@@ -21227,10 +21227,9 @@ async function installCargoSweep() {
       return cached;
   }
   core.startGroup("cargo install cargo-watch");
-  const tempdir = await fs.mkdtemp(path.join(
-    process.env["RUNNER_TEMP"] || os.tmpdir(),
-    "cargo-sweep-action"
-  ));
+  const tempdir = await fs.mkdtemp(
+    path.join(process.env["RUNNER_TEMP"] || os.tmpdir(), "cargo-sweep-action")
+  );
   await (0, import_exec.exec)("cargo", ["install", "cargo-sweep", "--root", tempdir]);
   core.endGroup();
   return await tc.cacheDir(path.join(tempdir, "bin"), "cargo-sweep", version2);
