@@ -4,8 +4,8 @@ import { exec } from '@actions/exec'
 import { HttpClient } from '@actions/http-client'
 import { WritableStreamBuffer } from 'stream-buffers'
 import * as fs from 'fs/promises'
-import * as path from 'path';
-import * as os from 'os';
+import * as path from 'path'
+import * as os from 'os'
 
 const client = new HttpClient('cargo-sweep-action')
 
@@ -66,13 +66,17 @@ async function getTargetFromRustc(): Promise<string> {
 
 // Convert a generic target to a musl one.
 function getMuslTarget(target: string): string {
-  const components = target.split('-');
-  components[components.length - 1] = 'musl';
-  return components.join('-');
+  const components = target.split('-')
+  components[components.length - 1] = 'musl'
+  return components.join('-')
 }
 
-async function downloadCargoSweep(version: string, target: string): Promise<string | undefined> {
-  const baseUrl = 'https://github.com/cargo-bins/cargo-quickinstall/releases/download'
+async function downloadCargoSweep(
+  version: string,
+  target: string
+): Promise<string | undefined> {
+  const baseUrl =
+    'https://github.com/cargo-bins/cargo-quickinstall/releases/download'
   const url = `${baseUrl}/cargo-sweep-${version}/cargo-sweep-${version}-${target}.tar.gz`
 
   core.debug(`Attempting download from ${url}`)
@@ -87,30 +91,26 @@ async function downloadCargoSweep(version: string, target: string): Promise<stri
 }
 
 async function installCargoSweep(): Promise<string> {
-  const version = await getLatestVersion();
-  const target = await getTargetFromRustc();
-  let cached: string | undefined;
+  const version = await getLatestVersion()
+  const target = await getTargetFromRustc()
+  let cached: string | undefined
 
-  cached = tc.find('cargo-sweep', version, target);
-  if (cached)
-    return cached;
+  cached = tc.find('cargo-sweep', version, target)
+  if (cached) return cached
 
-  cached = await downloadCargoSweep(version, target);
-  if (cached)
-    return cached;
+  cached = await downloadCargoSweep(version, target)
+  if (cached) return cached
 
   const muslTarget = getMuslTarget(target)
   if (muslTarget !== target) {
     cached = await downloadCargoSweep(version, muslTarget)
-    if (cached)
-      return cached;
+    if (cached) return cached
   }
 
-  core.startGroup("cargo install cargo-watch")
-  const tempdir = await fs.mkdtemp(path.join(
-    process.env['RUNNER_TEMP'] || os.tmpdir(),
-    'cargo-sweep-action'
-  ))
+  core.startGroup('cargo install cargo-watch')
+  const tempdir = await fs.mkdtemp(
+    path.join(process.env['RUNNER_TEMP'] || os.tmpdir(), 'cargo-sweep-action')
+  )
   await exec('cargo', ['install', 'cargo-sweep', '--root', tempdir])
   core.endGroup()
 
@@ -118,7 +118,7 @@ async function installCargoSweep(): Promise<string> {
 }
 
 async function run(): Promise<void> {
-  const cached = await installCargoSweep();
+  const cached = await installCargoSweep()
 
   core.debug(`cargo-sweep downloaded to ${cached}`)
   core.addPath(cached)
