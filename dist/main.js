@@ -21204,8 +21204,8 @@ async function downloadCargoSweep(version2, target) {
   const url = `${baseUrl}/cargo-sweep-${version2}/cargo-sweep-${version2}-${target}.tar.gz`;
   core.debug(`Attempting download from ${url}`);
   try {
-    const path2 = await tc.downloadTool(url);
-    const extracted = await tc.extractTar(path2);
+    const downloadPath = await tc.downloadTool(url);
+    const extracted = await tc.extractTar(downloadPath);
     return await tc.cacheDir(extracted, "cargo-sweep", version2, target);
   } catch (e) {
   }
