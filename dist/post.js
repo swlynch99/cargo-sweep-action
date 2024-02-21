@@ -18956,7 +18956,7 @@ var core = __toESM(require_core());
 var exec = __toESM(require_exec());
 async function sweep() {
   core.startGroup("run cargo-sweep");
-  exec.exec("cargo", ["sweep", "-f", "-r"]);
+  await exec.exec("cargo", ["sweep", "-f", "-r"]);
   core.endGroup();
 }
 sweep();
