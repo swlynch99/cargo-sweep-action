@@ -19,7 +19,7 @@ dependencies:
     version: 2.0.1
   stream-buffers:
     specifier: ^3.0.2
-    version: 3.0.2
+    version: 3.0.3
 
 devDependencies:
   '@types/jest':
@@ -4342,8 +4342,8 @@ packages:
       escape-string-regexp: 2.0.0
     dev: true
 
-  /stream-buffers@3.0.2:
-    resolution: {integrity: sha512-DQi1h8VEBA/lURbSwFtEHnSTb9s2/pwLEaFuNhXwy1Dx3Sa0lOuYT2yNUr4/j2fs8oCAMANtrZ5OrPZtyVs3MQ==}
+  /stream-buffers@3.0.3:
+    resolution: {integrity: sha512-pqMqwQCso0PBJt2PQmDO0cFj0lyqmiwOMiMSkVtRokl7e+ZTRYgDHKnuZNbqjiJXgsg4nuqtD/zxuo9KqTp0Yw==}
     engines: {node: '>= 0.10.0'}
     dev: false
 
