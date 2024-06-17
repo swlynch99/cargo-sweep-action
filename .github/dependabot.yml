@@ -14,5 +14,5 @@ updates:
       - dependabot
       - npm
     schedule:
-      interval: weekly
+      interval: monthly
     versioning-strategy: lockfile-only
